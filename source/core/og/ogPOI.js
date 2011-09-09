@@ -122,6 +122,8 @@ ogPOI.prototype.ParseOptions = function(options)
    
    this.poi = context.engine.poimanager.CreatePoi(text, this.textstyle, icon, this.iconstyle);
    this.poi.hide = false; //appended property
+   this.poi.lat = wgs_position[1];
+   this.poi.lng = wgs_position[0];
    
    if(options["flagpoleColor"])
    {
@@ -141,11 +143,11 @@ ogPOI.prototype.ParseOptions = function(options)
    
    this.poi.ogpoi = this;
    
-   var poirenderer = this._GetPoiRenderer();
+   var poiengine  = this._GetPoiEngine();
    
-   if (poirenderer)
+   if (poiengine )
    {
-      poirenderer.AddPoi(this.poi);
+      poiengine.AddPoi(this.poi);
    }
    
    if(options["visibilityRange"])
@@ -166,12 +168,12 @@ ogPOI.prototype._OnDestroy = function()
    /** @type {ogContext} */
    var context = /** @type ogContext */scene.parent;
    
-   /** @type {PoiRenderer} */
-   var poirenderer = this._GetPoiRenderer();
+   /** @type {PoiEngine} */
+   var poiengine = this._GetPoiEngine();
    
-   if (poirenderer)
+   if (poiengine)
    {
-      poirenderer.RemovePoi(this.poi);
+      poiengine.RemovePoi(this.poi);
    }
    
    /** @type {PoiManager} */
@@ -263,9 +265,9 @@ ogPOI.prototype.Show = function()
 }
 //------------------------------------------------------------------------------
 /**
- *  @returns {PoiRenderer} the poi-renderer
+ *  @returns {?PoiEngine} the poi-renderer
  */
-ogPOI.prototype._GetPoiRenderer = function()
+ogPOI.prototype._GetPoiEngine = function()
 {
    /** @type {PoiRenderer} */
    var renderer = null;
@@ -282,10 +284,11 @@ ogPOI.prototype._GetPoiRenderer = function()
    {
       if (engine.scene.nodeRenderObject)
       {
-         renderer = engine.scene.nodeRenderObject.poirenderer;  
+         return engine.scene.nodeRenderObject.globerenderer.poiengine;  
       }
    }
-   return renderer;
+   
+   return null;
 }
 //------------------------------------------------------------------------------
 /**

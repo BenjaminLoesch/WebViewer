@@ -32,6 +32,7 @@ goog.require('owg.i3dImageLayer');
 goog.require('owg.owgImageLayer');
 goog.require('owg.i3dElevationLayer');
 goog.require('owg.owgElevationLayer');
+goog.require('owg.PoiEngine');
 
 //------------------------------------------------------------------------------
 /**
@@ -101,6 +102,11 @@ function GlobeRenderer(engine)
    this.southpole = new Surface(this.engine);
    this.northpolecolor = [8/255,24/255,58/255]; 
    this.southpolecolor = [1,1,1];
+   
+   /** @type {PoiEngine} */
+   this.poiengine = new PoiEngine(engine);
+   this.lstpoi = [];
+   this.updatepois=0;
 }
 
 //------------------------------------------------------------------------------
@@ -339,6 +345,7 @@ GlobeRenderer.prototype._UpdateLayers = function()
  */
 GlobeRenderer.prototype.Render = function(vCameraPosition, matModelViewProjection)
 {
+   this.updatepois++;
    this.matPick.CopyFrom(matModelViewProjection);  // copy last mvp for pick-event
    
    this.frustum.Update(matModelViewProjection);
@@ -363,6 +370,12 @@ GlobeRenderer.prototype.Render = function(vCameraPosition, matModelViewProjectio
       return; 
    }  
    
+   if(this.updatepois>20)
+   {
+      this.lstpoi = [];
+   }
+   
+   
    this.lstFrustum = []; 
    this.lstFrustum.push(tb0);
    this.lstFrustum.push(tb1);
@@ -376,9 +389,14 @@ GlobeRenderer.prototype.Render = function(vCameraPosition, matModelViewProjectio
    
    for (var i=0;i<this.lstFrustum.length;i++)
    {
-      this.lstFrustum[i].Render();   
+      this.lstFrustum[i].Render();  
    }
    
+   for (var i=0;i<this.lstpoi.length;i++)
+   {
+      this.lstpoi[i].Draw();  
+   }
+  
    var northTiles=[];
    var southTiles=[];
    for (var i=0;i<this.lstFrustum.length;i++)
@@ -423,7 +441,11 @@ GlobeRenderer.prototype.Render = function(vCameraPosition, matModelViewProjectio
    if(southTiles.length>3)
    {
      this._GenerateSouthPole(southTiles); 
-   } 
+   }
+      if(this.updatepois>20)
+   {
+      this.updatepois==0;
+   }
 }
 //------------------------------------------------------------------------------
 /**
@@ -627,6 +649,17 @@ GlobeRenderer.prototype._SubDivide = function()
          var tb1 = this.globecache.RequestBlock(quadcode+"1");
          var tb2 = this.globecache.RequestBlock(quadcode+"2");
          var tb3 = this.globecache.RequestBlock(quadcode+"3");
+         
+         if(this.updatepois>20)
+         {
+            var PoiList = this.poiengine._GetPOIs(quadcode);
+            if (PoiList)
+            {
+               this.lstpoi = this.lstpoi.concat(PoiList);
+            }
+         }
+         
+         
          
          if (tb0.IsAvailable() &&
              tb1.IsAvailable() && 
