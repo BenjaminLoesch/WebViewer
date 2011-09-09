@@ -106,6 +106,7 @@ function GlobeRenderer(engine)
    /** @type {PoiEngine} */
    this.poiengine = new PoiEngine(engine);
    this.lstpoi = [];
+   /** @type {number} */
    this.updatepois=0;
 }
 
@@ -442,9 +443,9 @@ GlobeRenderer.prototype.Render = function(vCameraPosition, matModelViewProjectio
    {
      this._GenerateSouthPole(southTiles); 
    }
-      if(this.updatepois>20)
+   if(this.updatepois>20)
    {
-      this.updatepois==0;
+      this.updatepois=0;
    }
 }
 //------------------------------------------------------------------------------
